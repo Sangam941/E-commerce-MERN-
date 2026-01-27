@@ -6,3 +6,118 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+
+// ENUMS
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// USER
+model User {
+  id        String   @id @default(uuid()) @map("user_id")
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+
+  orders    Order[]
+  cart      Cart?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@map("users")
+}
+
+
+// PRODUCT
+model Product {
+  id        String   @id @default(uuid()) @map("product_id")
+  name      String
+  price     Int
+  stock     Int
+  category  String
+  imageUrl  String
+  isActive  Boolean  @default(true) // soft delete
+
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@map("products")
+}
+
+
+// CART
+model Cart {
+  id        String     @id @default(uuid()) @map("cart_id")
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+
+  items     CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @map("cart_item_id")
+  cartId    String
+  productId String
+  quantity  Int
+
+  cart     Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+
+// ORDER
+model Order {
+  id        String      @id @default(uuid()) @map("order_id")
+  userId    String
+  total     Int
+  status    OrderStatus @default(PLACED)
+
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid()) @map("order_item_id")
+  orderId   String
+  productId String
+  quantity  Int
+  price     Int // snapshot price at time of order
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
