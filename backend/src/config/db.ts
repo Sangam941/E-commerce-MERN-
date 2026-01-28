@@ -1,18 +1,19 @@
-import 'dotenv/config'
+import "dotenv/config";
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
-// Simple Prisma client setup for the ecommerce project 0
+const connectionString = `${process.env.DATABASE_URL}`
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter })
 
 export const connectToDB = async () => {
-  try {
-    await prisma.$connect()
-    console.log('Database connected successfully')
-  } catch (error) {
-    console.error('Failed to connect to database:', error)
-  }
-}
+    try {
+        await prisma.$connect();
+        console.log('Database connected successfully');
+    } catch (error) {
+        console.error('Failed to connect to database:', error);
+    }
+};
 
-export default prisma
-
+export default prisma;
