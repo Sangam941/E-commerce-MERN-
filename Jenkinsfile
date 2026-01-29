@@ -2,7 +2,7 @@ pipeline {
     agent any 
 
     tools {
-        nodejs 'NodeJS'   // Jenkins → Global Tool Configuration → NodeJS
+        nodejs 'node'   // Jenkins → Global Tool Configuration → NodeJS
     }
 
     environment {
