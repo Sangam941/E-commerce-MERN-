@@ -10,15 +10,15 @@ pipeline {
 
         stage('Check Node') {
             steps {
-                sh 'node -v'
-                sh 'npm -v'
+                bat 'node -v'
+                bat 'npm -v'
             }
         }
 
         stage('Install Backend Dependencies') {
             steps {
                 dir("${BACKEND_DIR}") {
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -26,7 +26,7 @@ pipeline {
         stage('Install Frontend Dependencies') {
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh 'npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -34,7 +34,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh 'npm run build'
+                    bat 'npm run build'
                 }
             }
         }
@@ -42,7 +42,7 @@ pipeline {
         stage('Backend Start (Test Run)') {
             steps {
                 dir("${BACKEND_DIR}") {
-                    sh 'npm start || echo "Backend start skipped"'
+                    bat 'npm start'
                 }
             }
         }
@@ -50,10 +50,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Jenkins pipeline SUCCESS'
+            echo '✅ Jenkins pipeline SUCCESS (Windows)'
         }
         failure {
-            echo '❌ Jenkins pipeline FAILED'
+            echo '❌ Jenkins pipeline FAILED (Windows)'
         }
     }
 }
