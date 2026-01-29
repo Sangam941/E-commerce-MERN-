@@ -18,12 +18,12 @@ export const registerUserService = async ({ email, password, role = 'CUSTOMER' }
       throw new AppError("Email already in use", 409);
     }
   
-    const hashedPassword = await bcrypt.hash(password, 10)
+    // const hashedPassword = await bcrypt.hash(password, 10)
     // Create the user
     const newUser = await prisma.user.create({
       data: {
         email,
-        password: hashedPassword,
+        password,
         role,
       },
     });
@@ -54,11 +54,11 @@ export const loginUserService = async ({ email, password }: any) => {
   }
 
   // Compare hashed password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+//   const isPasswordValid = await bcrypt.compare(password, user.password);
 
-  if (!isPasswordValid) {
-    throw new AppError("Invalid credentials", 401);
-  }
+//   if (!isPasswordValid) {
+//     throw new AppError("Invalid credentials", 401);
+//   }
 
   const tokenPayload = {
     id: user.id,
