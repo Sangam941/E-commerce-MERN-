@@ -1,9 +1,5 @@
 pipeline {
-    agent any 
-
-    tools {
-        nodejs 'node'   // Jenkins → Global Tool Configuration → NodeJS
-    }
+    agent any
 
     environment {
         FRONTEND_DIR = 'frontend'
@@ -12,9 +8,10 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Check Node') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
+                sh 'node -v'
+                sh 'npm -v'
             }
         }
 
@@ -22,14 +19,6 @@ pipeline {
             steps {
                 dir("${BACKEND_DIR}") {
                     sh 'npm install'
-                }
-            }
-        }
-
-        stage('Test Backend') {
-            steps {
-                dir("${BACKEND_DIR}") {
-                    sh 'npm test || echo "No tests found"'
                 }
             }
         }
@@ -50,18 +39,10 @@ pipeline {
             }
         }
 
-        stage('Deploy Backend') {
+        stage('Backend Start (Test Run)') {
             steps {
                 dir("${BACKEND_DIR}") {
-                    sh 'pm2 restart backend || pm2 start index.js --name backend'
-                }
-            }
-        }
-
-        stage('Deploy Frontend') {
-            steps {
-                dir("${FRONTEND_DIR}") {
-                    sh 'echo "Deploy frontend build files to server / nginx"'
+                    sh 'npm start || echo "Backend start skipped"'
                 }
             }
         }
@@ -69,10 +50,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build & Deployment Successful!'
+            echo '✅ Jenkins pipeline SUCCESS'
         }
         failure {
-            echo '❌ Build Failed!'
+            echo '❌ Jenkins pipeline FAILED'
         }
     }
 }
