@@ -10,6 +10,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
         res.status(201).json(result);
     } catch (error: any) {
         next(new AppError(error.message || 'Registration failed', error.statusCode || 500));
+        console.log(error)
     }
 };
 
@@ -20,5 +21,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         res.status(200).json(result);
     } catch (error: any) {
         next(new AppError(error.message || 'Login failed', error.statusCode || 500));
+        console.log(error)
     }
 };
