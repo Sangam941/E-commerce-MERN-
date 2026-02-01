@@ -2,6 +2,25 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/appError';
 import { Role } from '../../generated/prisma/client'; // Import the Role enum from your generated prisma client
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: { id: string; role: string; [key: string]: any };
+      file?: {
+        fieldname: string;
+        originalname: string;
+        encoding: string;
+        mimetype: string;
+        size: number;
+        destination: string;
+        filename: string;
+        path: string;
+        buffer: Buffer;
+      };
+    }
+  }
+}
+
 export const restrictTo = (...allowedRoles: Role[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         // 1. Check if user exists on request (set by protect middleware)
