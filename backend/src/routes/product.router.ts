@@ -16,9 +16,6 @@ router.get('/fetch-single-product/:id', getSingleProductById);
 router.patch('/update-product/:id', restrictTo('ADMIN'), upload, updateProduct);
 router.delete('/delete-product', restrictTo('ADMIN'), deleteProducts);
 
-// for bulk delete, another endpoint
-router.post('/delete-many', restrictTo('ADMIN'), deleteProducts);
-
 export default router;
  
 

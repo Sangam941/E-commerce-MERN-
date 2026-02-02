@@ -5,6 +5,8 @@ import { connectToDB } from "./config/db.js";
 import { globalErrorHandler } from "./middleware/error.middleware.js";
 import authRoute from './routes/auth.router'
 import productRoute from './routes/product.router'
+import cartRoute from './routes/cart.router'
+import orderRoute from './routes/order.router'
 
 const app = express();
 const port = process.env.PORT;
@@ -20,6 +22,8 @@ app.get('/', (req,res)=>{
 
 app.use('/api/auth', authRoute)
 app.use('/api/products', productRoute)
+app.use('/api/cart', cartRoute)
+app.use('/api/orders', orderRoute)
 
 app.use(globalErrorHandler)
 
