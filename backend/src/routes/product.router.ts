@@ -20,7 +20,7 @@ router.delete('/delete-product', restrictTo('ADMIN'), deleteProducts);
 router.post('/delete-many', restrictTo('ADMIN'), deleteProducts);
 
 export default router;
-
+ 
 
 
 
