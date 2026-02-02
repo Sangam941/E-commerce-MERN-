@@ -100,3 +100,125 @@ export const uploadImageAndCreateProductService = async (
   return product;
 };
 
+// Get all products service
+export const getAllProductsService = async () => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true }
+    });
+
+    return {
+      success: true,
+      data: products
+    };
+  } catch (error: any) {
+    throw new AppError(
+      error.message || "Failed to fetch products",
+      error.statusCode || 500
+    );
+  }
+};
+
+// Get product by ID service
+export const getProductByIdService = async (id: string) => {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!product) {
+      throw new AppError("Product not found", 404);
+    }
+
+    return {
+      success: true,
+      data: product
+    };
+  } catch (error: any) {
+    throw new AppError(
+      error.message || "Failed to fetch product",
+      error.statusCode || 500
+    );
+  }
+};
+
+// Update product service
+export const updateProductService = async (id: string, updateData: Partial<CreateProductData> | undefined) => {
+  try {
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!existingProduct) {
+      throw new AppError("Product not found", 404);
+    }
+
+    // Validate price and stock if provided
+    if (updateData?.price !== undefined && updateData.price <= 0) {
+      throw new AppError("Price must be greater than 0", 400);
+    }
+
+    if (updateData?.stock !== undefined && updateData.stock < 0) {
+      throw new AppError("Stock cannot be negative", 400);
+    }
+
+    // Prepare update data
+    const dataToUpdate: any = {};
+    if (updateData?.name !== undefined) dataToUpdate.name = updateData.name;
+    if (updateData?.price !== undefined) dataToUpdate.price = Math.round(updateData.price);
+    if (updateData?.stock !== undefined) dataToUpdate.stock = Math.round(updateData.stock);
+    if (updateData?.category !== undefined) dataToUpdate.category = updateData.category;
+    if (updateData?.imageUrl !== undefined) dataToUpdate.imageUrl = updateData.imageUrl;
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: dataToUpdate
+    });
+
+    return {
+      success: true,
+      message: "Product updated successfully",
+      data: product
+    };
+  } catch (error: any) {
+    throw new AppError(
+      error.message || "Failed to update product",
+      error.statusCode || 500
+    );
+  }
+};
+
+// Delete products service (handles both single and bulk delete)
+export const deleteProductsService = async (id: string) => {
+  try {
+    if (!id) {
+      throw new AppError("Product ID is required", 400);
+    }
+
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!existingProduct) {
+      throw new AppError("Product not found", 404);
+    }
+
+    await prisma.product.delete({
+      where: { id }
+    });
+
+    return {
+      success: true,
+      message: "Product deleted successfully",
+      data: null
+    };
+  } catch (error: any) {
+    throw new AppError(
+      error.message || "Failed to delete product",
+      error.statusCode || 500
+    );
+  }
+};
+
