@@ -1,6 +1,9 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Heart, House, ReceiptText, ShoppingBag, User } from "lucide-react";
 import { IconButton } from "../ui/IconButton";
+import Footer from "../../footer";
+
+
 
 const navItems = [
   { id: "home", label: "Home", icon: House, href: "/customer/home" },
@@ -136,6 +139,9 @@ export function CustomerLayout() {
           <Outlet />
         </div>
       </main>
+            {/* Footer */}
+      <Footer />
+
 
       <BottomNav />
     </div>

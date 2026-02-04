@@ -54,11 +54,11 @@ export default function HomePage() {
 
       {/* Promo Banner */}
       <div className="mt-4 rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5">
-        <div className="relative aspect-[16/10] sm:aspect-[16/9] md:aspect-[4/3] bg-slate-900">
+        <div className="relative w-full max-w-7xl h-[50vh] bg-slate-900 mx-auto">
           <img
             alt="Promo banner"
             src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1400&q=70"
-            className="h-full w-full object-cover opacity-60"
+            className="h-full w-full object-cover opacity-50"
           />
           <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end">
             <div className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight">
