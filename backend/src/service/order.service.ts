@@ -1,9 +1,9 @@
 import { AppError } from '../utils/appError';
 import prisma from '../config/db';
-import { OrderStatus } from '../../generated/prisma/client';
+import { OrderStatus } from '../../generated/prisma/enums';
 
 // Create order from cart
-export const createOrderFromCartService = async (userId: string) => {
+export const createOrderService = async (userId: string) => {
   try {
     // Get user's cart with items
     const cart = await prisma.cart.findUnique({
@@ -18,12 +18,13 @@ export const createOrderFromCartService = async (userId: string) => {
     });
 
     if (!cart || cart.items.length === 0) {
-      throw new AppError("Cart is empty", 400);
+      throw new AppError("Cart is empty. Cannot create order.", 400);
     }
 
     // Validate stock and calculate total
     let total = 0;
-    const orderItems = [];
+    
+    const orderItems: { productId: string; quantity: number; price: number }[] = [];
 
     for (const item of cart.items) {
       if (!item.product.isActive) {
@@ -31,7 +32,10 @@ export const createOrderFromCartService = async (userId: string) => {
       }
 
       if (item.product.stock < item.quantity) {
-        throw new AppError(`Insufficient stock for ${item.product.name}. Available: ${item.product.stock}`, 400);
+        throw new AppError(
+          `Insufficient stock for ${item.product.name}. Available: ${item.product.stock}, Requested: ${item.quantity}`,
+          400
+        );
       }
 
       const itemTotal = item.product.price * item.quantity;
@@ -51,7 +55,7 @@ export const createOrderFromCartService = async (userId: string) => {
         data: {
           userId,
           total,
-          status: 'PLACED',
+          status: OrderStatus.PLACED,
           items: {
             create: orderItems
           }
@@ -98,47 +102,22 @@ export const createOrderFromCartService = async (userId: string) => {
   }
 };
 
-// Get all orders (user's orders or all orders for admin)
-export const getAllOrdersService = async (userId: string, userRole: string) => {
+// Get all orders for a user
+export const getUserOrdersService = async (userId: string) => {
   try {
-    let orders;
-
-    if (userRole === 'ADMIN') {
-      // Admin can see all orders
-      orders = await prisma.order.findMany({
-        include: {
-          items: {
-            include: {
-              product: true
-            }
-          },
-          user: {
-            select: {
-              id: true,
-              email: true
-            }
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true
           }
-        },
-        orderBy: {
-          createdAt: 'desc'
         }
-      });
-    } else {
-      // User can only see their own orders
-      orders = await prisma.order.findMany({
-        where: { userId },
-        include: {
-          items: {
-            include: {
-              product: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-    }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
     return {
       success: true,
@@ -153,97 +132,58 @@ export const getAllOrdersService = async (userId: string, userRole: string) => {
 };
 
 // Get single order by ID
-export const getOrderByIdService = async (orderId: string, userId: string, userRole: string) => {
+// export const getOrderByIdService = async (orderId: string, userId: string) => {
+//   try {
+//     const order = await prisma.order.findUnique({
+//       where: { id: orderId },
+//       include: {
+//         items: {
+//           include: {
+//             product: true
+//           }
+//         }
+//       }
+//     });
+
+//     if (!order) {
+//       throw new AppError("Order not found", 404);
+//     }
+
+//     // Check if order belongs to user (unless admin)
+//     if (order.userId !== userId) {
+//       throw new AppError("Unauthorized: This order does not belong to you", 403);
+//     }
+
+//     return {
+//       success: true,
+//       data: order
+//     };
+//   } catch (error: any) {
+//     throw new AppError(
+//       error.message || "Failed to fetch order",
+//       error.statusCode || 500
+//     );
+//   }
+// };
+
+// Update order status (admin only)
+export const updateOrderStatusService = async (orderId: string, status: OrderStatus) => {
   try {
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        items: {
-          include: {
-            product: true
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            email: true
-          }
-        }
-      }
+      where: { id: orderId }
     });
 
     if (!order) {
       throw new AppError("Order not found", 404);
     }
 
-    // Check if user has permission to view this order
-    if (userRole !== 'ADMIN' && order.userId !== userId) {
-      throw new AppError("Unauthorized: You can only view your own orders", 403);
-    }
-
-    return {
-      success: true,
-      data: order
-    };
-  } catch (error: any) {
-    throw new AppError(
-      error.message || "Failed to fetch order",
-      error.statusCode || 500
-    );
-  }
-};
-
-// Update order status (Admin only)
-export const updateOrderStatusService = async (orderId: string, status: OrderStatus) => {
-  try {
-    // Validate status
-    const validStatuses: OrderStatus[] = ['PLACED', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-    if (!validStatuses.includes(status)) {
-      throw new AppError(`Invalid status. Valid statuses: ${validStatuses.join(', ')}`, 400);
-    }
-
-    // Check if order exists
-    const existingOrder = await prisma.order.findUnique({
-      where: { id: orderId }
-    });
-
-    if (!existingOrder) {
-      throw new AppError("Order not found", 404);
-    }
-
-    // If cancelling order, restore stock
-    if (status === 'CANCELLED' && existingOrder.status !== 'CANCELLED') {
-      const orderItems = await prisma.orderItem.findMany({
-        where: { orderId }
-      });
-
-      await prisma.$transaction(
-        orderItems.map(item =>
-          prisma.product.update({
-            where: { id: item.productId },
-            data: {
-              stock: {
-                increment: item.quantity
-              }
-            }
-          })
-        )
-      );
-    }
-
-    const order = await prisma.order.update({
+    const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { status },
       include: {
         items: {
           include: {
             product: true
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            email: true
           }
         }
       }
@@ -252,11 +192,45 @@ export const updateOrderStatusService = async (orderId: string, status: OrderSta
     return {
       success: true,
       message: "Order status updated successfully",
-      data: order
+      data: updatedOrder
     };
   } catch (error: any) {
     throw new AppError(
       error.message || "Failed to update order status",
+      error.statusCode || 500
+    );
+  }
+};
+
+// Get all orders (admin only)
+export const getAllOrdersService = async () => {
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return {
+      success: true,
+      data: orders
+    };
+  } catch (error: any) {
+    throw new AppError(
+      error.message || "Failed to fetch orders",
       error.statusCode || 500
     );
   }

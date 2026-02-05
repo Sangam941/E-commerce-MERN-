@@ -78,3 +78,14 @@ export const deleteProducts = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+// Toggle wishlist flag on a product
+export const toggleProductWishlist = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.body;
+    const result = await productService.toggleProductWishlistService(id as string);
+    res.status(200).json(result);
+  } catch (error: any) {
+    next(new AppError(error.message || 'Failed to toggle wishlist status', error.statusCode || 500));
+  }
+};
+

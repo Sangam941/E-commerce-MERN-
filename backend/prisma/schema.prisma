@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  output = "../generated/prisma"
 }
 
 
@@ -42,13 +41,14 @@ model User {
 
 // PRODUCT
 model Product {
-  id        String   @id @default(uuid()) @map("product_id")
-  name      String
-  price     Int 
-  stock     Int
-  category  String
-  imageUrl  String
-  isActive  Boolean  @default(true) // soft delete
+  id         String   @id @default(uuid()) @map("product_id")
+  name       String
+  price      Int 
+  stock      Int
+  category   String
+  imageUrl   String
+  isActive   Boolean  @default(true) // soft delete
+  isWishlist Boolean  @default(false)
 
   orderItems OrderItem[]
   cartItems  CartItem[]
@@ -122,3 +122,6 @@ model OrderItem {
   @@index([productId])
   @@map("order_items")
 }
+
+
+// WISHLIST models removed (no longer used)

@@ -1,11 +1,8 @@
-import React from 'react'
+import React from 'react';
+import Dashboard from './pages/admin/Dashboard';
 
 const App = () => {
-  return (
-    <div className='font-bold'>
-      this is the home page
-    </div>
-  )
-}
+  return <Dashboard />;
+};
 
-export default App
+export default App;

@@ -222,3 +222,34 @@ export const deleteProductsService = async (id: string) => {
   }
 };
 
+// Toggle isWishlist flag for a product
+export const toggleProductWishlistService = async (id: string) => {
+  try {
+    const existingProduct = await prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!existingProduct) {
+      throw new AppError("Product not found", 404);
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: {
+        isWishlist: !existingProduct.isWishlist
+      }
+    });
+
+    return {
+      success: true,
+      message: "Product wishlist status toggled",
+      data: updated
+    };
+  } catch (error: any) {
+    throw new AppError(
+      error.message || "Failed to toggle product wishlist status",
+      error.statusCode || 500
+    );
+  }
+};
+
