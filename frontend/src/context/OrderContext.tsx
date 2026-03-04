@@ -47,7 +47,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const addOrder = (items: OrderItem[], total: number) => {
     const newOrder: Order = {
-      id: Math.random().toString(36).substr(2, 9).toUpperCase(), // Simple random ID
+      id:`ORD-${Date.now().toString(36).toUpperCase()}`, // Simple random ID
       date: new Date().toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
